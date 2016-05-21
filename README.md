@@ -1,2 +1,3 @@
 # gokvstore
-Golang Key-Value Store
+
+Golang key/value store.
