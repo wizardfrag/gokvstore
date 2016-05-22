@@ -1,15 +1,10 @@
 package gokvstore
 
-import "sync"
+type kvItem interface{}
 
-type kvitem struct {
-    Value string
-    Mutex *sync.Mutex
-}
+type kvStore map[string]kvItem
 
-type kvstore map[string]kvitem
-
-type itemtostore struct {
-    Key string
-    Value kvitem
+type storageItem struct {
+	Key   string
+	Value interface{}
 }

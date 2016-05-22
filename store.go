@@ -1,18 +1,31 @@
 package gokvstore
 
-var storage store
-var storagechan = make(chan itemtostore, 0)
+import (
+	"sync"
+	"errors"
+)
 
-func init() {
-    storage = make(store)
-    go run()
+// Store implements the key-value store
+type Store struct {
+	storage kvStore
+	storageMutex sync.Mutex
 }
 
-func run() {
-    for {
-        select {
-        case item := storagechan:
-            
-        }
-    }
+func (s *Store) Init() {
+	s.storage = make(kvStore)
+}
+
+func (s *Store) WriteItem(item storageItem) {
+	s.storageMutex.Lock()
+	defer s.storageMutex.Unlock()
+	s.storage[item.Key] = item.Value
+}
+
+func (s *Store) GetItem(item storageItem) (kvItem, error) {
+	s.storageMutex.Lock()
+	defer s.storageMutex.Unlock()
+	if val, ok := s.storage[item.Key]; ok {
+		return val, nil
+	}
+	return nil, errors.New("No such key")
 }
