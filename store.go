@@ -1,13 +1,13 @@
 package gokvstore
 
 import (
-	"sync"
 	"errors"
+	"sync"
 )
 
 // Store implements the key-value store
 type Store struct {
-	storage kvStore
+	storage      kvStore
 	storageMutex sync.Mutex
 }
 

@@ -1,8 +1,8 @@
 package gokvstore
 
 import (
-	"net"
 	"fmt"
+	"net"
 )
 
 type UdpServer struct {
@@ -29,7 +29,7 @@ func (s *UdpServer) Init(port int, st *Store) {
 		fmt.Println("Received ", string(buf[0:n]), " from ", address)
 
 		if err != nil {
-			fmt.Println("Error: ",err)
+			fmt.Println("Error: ", err)
 		}
 	}
 }

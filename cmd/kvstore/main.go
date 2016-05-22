@@ -1,8 +1,8 @@
 package main
 
 import (
-	"sync"
 	"github.com/wizardfrag/gokvstore"
+	"sync"
 )
 
 func main() {
