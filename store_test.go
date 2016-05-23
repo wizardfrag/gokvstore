@@ -1,6 +1,10 @@
 package gokvstore
 
-import "testing"
+import (
+	"testing"
+	"sync"
+	"fmt"
+)
 
 func TestStore_Init(t *testing.T) {
 	var s *Store
@@ -32,5 +36,33 @@ func TestStore_GetItem(t *testing.T) {
 	s.WriteItem(storageItem{Key: "test", Value: true})
 	if _, err := s.GetItem(storageItem{Key: "test"}); err != nil {
 		t.Error("Expected s.GetItem(test) to throw NO error with wrong key, got", err)
+	}
+}
+
+func TestConcurrent(t *testing.T) {
+	s := &Store{}
+	s.Init()
+
+	wg := &sync.WaitGroup{}
+
+	wg.Add(3)
+
+	// Run 3 writes in goroutines, which should run in order thanks to the mutex
+	go func() {
+		s.WriteItem(storageItem{"test", 1})
+		wg.Done()
+	}()
+	go func() {
+		s.WriteItem(storageItem{"test", 2})
+		wg.Done()
+	}()
+	go func() {
+		s.WriteItem(storageItem{"test", 3})
+		wg.Done()
+	}()
+
+	wg.Wait()
+	if val, _ := s.GetItem(storageItem{Key: "test"}); val != 3 {
+		t.Error("val != 3, got", val)
 	}
 }
