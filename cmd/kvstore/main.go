@@ -8,27 +8,26 @@ import (
 func main() {
 	s := &gokvstore.Store{}
 	s.Init()
-	var wg sync.WaitGroup
 
-	// Use a sync.WaitGroup to wait for all servers to finish...
-	wg.Add(3)
+	// Use a channel so we automatically exit if we can't bind to one of the ports
+	shutdownChan := make(chan bool)
 
 	// Start TCP Server
 	go func() {
-		defer wg.Done()
 		(&gokvstore.TcpServer{}).Init(6000, s)
+		shutdownChan <- true
 	}()
 	// Start UDP Server
 	go func() {
-		defer wg.Done()
 		(&gokvstore.UdpServer{}).Init(6000, s)
+		shutdownChan <- true
 	}()
 
 	// Start HTTP Server
 	go func() {
-		defer wg.Done()
 		(&gokvstore.HttpServer{}).Init(8000, s)
+		shutdownChan <- true
 	}()
 
-	wg.Wait()
+	<- shutdownChan
 }
