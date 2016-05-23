@@ -37,8 +37,9 @@ func (h *HttpServer) post(w http.ResponseWriter, r *http.Request, p httprouter.P
 	val := r.PostFormValue("val")
 
 	if key == "" || typ == "" || val == "" {
-		fmt.Printf("Given: %s / %s / %s", key, typ, val)
+		fmt.Printf("Given: %s / %s / %s\n", key, typ, val)
 		jsonerr(w, weberror{"Please specify a key, type and val", http.StatusBadRequest})
+		return
 	}
 
 	var item storageItem
