@@ -38,7 +38,7 @@ func (h *HttpServer) post(w http.ResponseWriter, r *http.Request, p httprouter.P
 
 	if key == "" || typ == "" || val == "" {
 		fmt.Printf("Given: %s / %s / %s", key, typ, val)
-		httpError(w, kvError{"Please specify a key, type and val", http.StatusBadRequest})
+		httpError(w, kvError{"Please specify a key, type and val\n", http.StatusBadRequest})
 	}
 
 	var item storageItem
