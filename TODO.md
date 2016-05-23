@@ -2,6 +2,6 @@
 Create a process/goroutine for:
 
 * [x] key/value store - with mutexes for read/write
-* [ ] TCP server
-* [ ] UDP server
+* [x] TCP server
+* [x] UDP server
 * [x] HTTP server
