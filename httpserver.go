@@ -38,7 +38,7 @@ func (h *HttpServer) post(w http.ResponseWriter, r *http.Request, p httprouter.P
 
 	if key == "" || typ == "" || val == "" {
 		fmt.Printf("Given: %s / %s / %s", key, typ, val)
-		jsonerr(w, weberror{"Please specify a key, type and val", http.StatusBadRequest})
+		httpError(w, kvError{"Please specify a key, type and val", http.StatusBadRequest})
 	}
 
 	var item storageItem
@@ -48,28 +48,29 @@ func (h *HttpServer) post(w http.ResponseWriter, r *http.Request, p httprouter.P
 	case "int":
 		v, err := strconv.Atoi(val)
 		if err != nil {
-			jsonerr(w, weberror{err.Error(), http.StatusBadRequest})
+			httpError(w, kvError{err.Error(), http.StatusBadRequest})
 			return
 		}
 		item.Value = v
-	case "string":
-		item.Value = val
 	case "bool":
 		v, err := strconv.ParseBool(val)
 		if err != nil {
-			jsonerr(w, weberror{err.Error(), http.StatusBadRequest})
-			return
-		}
+		httpError(w, kvError{err.Error(), http.StatusBadRequest})
+		return
+	}
 		item.Value = v
 	case "float":
 		v, err := strconv.ParseFloat(val, 64)
 		if err != nil {
-			jsonerr(w, weberror{err.Error(), http.StatusBadRequest})
-			return
-		}
+		httpError(w, kvError{err.Error(), http.StatusBadRequest})
+		return
+	}
 		item.Value = v
+	case "string":
+		// String will be used as an arbitrary type
+		item.Value = val
 	default:
-		jsonerr(w, weberror{"Unknown type: " + typ, http.StatusBadRequest})
+		httpError(w, kvError{"Unknown type: " + typ, http.StatusBadRequest})
 		return
 	}
 	h.store.WriteItem(item)
@@ -84,36 +85,33 @@ func (h *HttpServer) get(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 	// Get the key from the router params
 	key := p.ByName("key")
 	if key == "" {
-		jsonerr(w, weberror{"Please specify a key", http.StatusBadRequest})
+		httpError(w, kvError{"Please specify a key", http.StatusBadRequest})
 	}
 
 	val, err := h.store.GetItem(storageItem{Key: key})
 	if err != nil {
 		// Only reason for an error is no such key, so reply with a 404.
-		jsonerr(w, weberror{err.Error(), http.StatusNotFound})
+		httpError(w, kvError{err.Error(), http.StatusNotFound})
 	} else {
-		jsonify(w, val)
+		httpOutput(w, val)
 	}
 }
 
-// The following is used for JSON replies via HTTP
-type weberror struct {
-	Message   string
-	ErrorCode int
-}
-
-func jsonify(w http.ResponseWriter, obj interface{}) {
-	jsonstr, err := json.Marshal(obj)
+// httpOutput turns a struct into json and passes it to the http.ResponseWriter
+// using json.Marshal, and handling any errors by passing them to jsonerr.
+func httpOutput(w http.ResponseWriter, obj interface{}) {
+	jsonBuf, err := json.Marshal(obj)
 	if err != nil {
-		jsonerr(w, weberror{err.Error(), http.StatusInternalServerError})
+		httpError(w, kvError{err.Error(), http.StatusInternalServerError})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, string(jsonstr))
+	fmt.Fprint(w, string(jsonBuf))
 }
 
-func jsonerr(w http.ResponseWriter, weberr weberror) {
+// httpError takes a webError and turns it into json using json.Marshal.
+func httpError(w http.ResponseWriter, weberr kvError) {
 	jsonstr, err := json.Marshal(weberr)
 	if err != nil {
 		fmt.Fprintf(w, "unrecoverable error: %+v", err)
