@@ -51,6 +51,7 @@ func (s *TcpServer) handleRequest(conn net.Conn) {
 			item, err := s.store.GetItem(command.Item)
 			if err != nil {
 				s.writeResult(conn, &kvError{err.Error(), 2})
+				return
 			}
 			s.writeResult(conn, item)
 		} else {
